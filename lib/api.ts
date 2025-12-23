@@ -1,46 +1,36 @@
 import axios from 'axios';
-import type { Note, CreateNoteData } from '@/types/note';
-const NOTEToken = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 
-interface FetchNotesResponse {
-  notes: Note[];
-  totalPages: number;
-}
+export const API_BASE_URL = 'https://notehub-public.goit.study/api';
 
-const noteInstance = axios.create({
-  baseURL: 'https://notehub-public.goit.study/api',
+export const api = axios.create({
+  baseURL: API_BASE_URL,
   headers: {
-    Authorization: `Bearer ${NOTEToken}`,
+    Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
   },
 });
 
-export const fetchNotes = async (
-  searchText: string,
-  page: number,
-  tag?: string
-): Promise<FetchNotesResponse> => {
-  const response = await noteInstance.get<FetchNotesResponse>('/notes', {
-    params: {
-      search: searchText,
-      page,
-      tag,
-      perPage: 12,
-    },
-  });
-  return response.data;
-};
+export interface Note {
+  id: number;
+  title: string;
+  content: string;
+  tags: string[];
+}
 
-export const createNote = async (data: CreateNoteData): Promise<Note> => {
-  const response = await noteInstance.post<Note>('/notes', data);
-  return response.data;
-};
-
-export const deleteNote = async (id: Note['id']): Promise<Note> => {
-  const response = await noteInstance.delete<Note>(`/notes/${id}`);
-  return response.data;
-};
-
-export const fetchNoteById = async (id: Note['id']): Promise<Note> => {
-  const response = await noteInstance.get<Note>(`/notes/${id}`);
-  return response.data;
-};
+export async function fetchNotes({
+  page = 1,
+  perPage = 12,
+  tag,
+}: {
+  page?: number;
+  perPage?: number;
+  tag?: string;
+}): Promise<Note[]> {
+  try {
+    const query = tag ? `?tag=${tag}&page=${page}&perPage=${perPage}` : `?page=${page}&perPage=${perPage}`;
+    const { data } = await api.get<Note[]>(`/notes${query}`);
+    return data;
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    return []; // fallback, щоб SSR не падав
+  }
+}

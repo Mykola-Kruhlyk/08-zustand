@@ -1,42 +1,41 @@
 'use client';
 
-import css from './NoteDetails.module.css';
-
-import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { fetchNoteById } from '@/lib/api';
-import { Note } from '@/types/note';
+import { useRouter } from 'next/navigation';
+import { fetchNoteById } from '@/lib/actions'; // ← виправлено
+import css from './page.module.css';
 
-export default function NoteDetailsClient() {
-  const { id } = useParams<{ id: string }>();
+interface NoteDetailsClientProps {
+  id: string;
+}
 
-  const {
-    data: note,
-    isLoading,
-    isError,
-  } = useQuery<Note>({
+export default function NoteDetailsClient({ id }: NoteDetailsClientProps) {
+  const router = useRouter();
+  const { data: note, isLoading, error } = useQuery({
     queryKey: ['note', id],
     queryFn: () => fetchNoteById(id),
-    refetchOnMount: false,
   });
 
-  if (isLoading) {
-    return <p>Loading, please wait...</p>;
-  }
-
-  if (isError || !note) {
-    return <p>Something went wrong.</p>;
-  }
+  if (isLoading) return <p>Loading...</p>;
+  if (error || !note) return <p>Note not found</p>;
 
   return (
-    <div className={css.container}>
-      <div className={css.item}>
-        <div className={css.header}>
-          <h2>{note.title}</h2>
+    <main className={css.main}>
+      <div className={css.container}>
+        <button onClick={() => router.back()} className={css.backBtn}>
+          ← Back
+        </button>
+        <div className={css.item}>
+          <div className={css.header}>
+            <h2>{note.title}</h2>
+            {note.tag && <span className={css.tag}>{note.tag}</span>}
+          </div>
+          <p className={css.content}>{note.content}</p>
+          <p className={css.date}>
+            {new Date(note.createdAt).toLocaleDateString()}
+          </p>
         </div>
-        <p className={css.content}>{note?.content}</p>
-        <p className={css.date}>{note.updatedAt || note.createdAt}</p>
       </div>
-    </div>
+    </main>
   );
 }

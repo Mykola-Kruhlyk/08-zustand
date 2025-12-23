@@ -1,15 +1,22 @@
 'use client';
 
-type Props = {
-  error: Error;
-};
+import { useEffect } from 'react';
 
-const Error = ({ error }: Props) => {
+interface ErrorProps {
+  error: Error;
+  reset: () => void;
+}
+
+export default function Error({ error, reset }: ErrorProps) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
   return (
-    <div>
-      <p>Could not fetch note details. {error.message}</p>
+    <div style={{ padding: '24px' }}>
+      <h2>Something went wrong</h2>
+      <p>Failed to load note details.</p>
+      <button onClick={reset}>Try again</button>
     </div>
   );
-};
-
-export default Error;
+}

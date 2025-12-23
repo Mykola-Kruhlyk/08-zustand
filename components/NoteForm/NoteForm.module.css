@@ -1,71 +1,82 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
-  font-size: 14px;
+  gap: 8px;
+}
+
+.formGroup label {
   font-weight: 500;
-  color: #212529;
+  color: #333;
+  font-size: 14px;
 }
 
 .input,
 .textarea,
 .select {
-  margin-top: 4px;
-  padding: 8px 12px;
-  font-size: 14px;
-  border: 1px solid #ced4da;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  resize: none;
+  font-size: 16px;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: #0d6efd;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 120px;
 }
 
 .actions {
   display: flex;
+  gap: 12px;
   justify-content: flex-end;
-  gap: 8px;
+  margin-top: 8px;
 }
 
+.cancelButton,
 .submitButton {
-  padding: 8px 16px;
-  font-size: 16px;
-  background-color: #0d6efd;
-  color: #fff;
+  padding: 10px 24px;
   border: none;
   border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s ease;
-}
-
-.submitButton:hover {
-  background-color: #0b5ed7;
-}
-
-.submitButton:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
 }
 
 .cancelButton {
-  padding: 8px 16px;
-  font-size: 16px;
-  background-color: #f8f9fa;
-  color: #212529;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  background-color: #6c757d;
+  color: white;
 }
 
-.cancelButton:hover {
-  background-color: #e2e6ea;
+.cancelButton:hover:not(:disabled) {
+  background-color: #5a6268;
 }
 
-.error {
-  color: #dc3545;
-  font-size: 12px;
-  margin-top: 4px;
+.submitButton {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: #0b5ed7;
+}
+
+.cancelButton:disabled,
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

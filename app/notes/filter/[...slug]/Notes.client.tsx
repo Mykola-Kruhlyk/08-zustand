@@ -1,77 +1,65 @@
 'use client';
-import css from './NotesPage.module.css';
-
-import NoteList from '@/components/NoteList/NoteList';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
+import { fetchNotesByTag } from '@/lib/actions';
+import { Note } from '@/types/note';
+import { useDebounce } from '@/lib/hooks/useDebounce';
+import NoteList from '@/components/NoteList/NoteList';
 import Pagination from '@/components/Pagination/Pagination';
 import SearchBox from '@/components/SearchBox/SearchBox';
-import { useDebounce } from 'use-debounce';
-import toast, { Toaster } from 'react-hot-toast';
-import Loader from '@/components/Loader/Loader';
-import ErrorMessage from '@/components/ErrorMessage/ErrorMessage';
-import useModalControl from '@/components/hooks/useModalControl';
-import Modal from '@/components/Modal/Modal';
-import NoteForm from '@/components/NoteForm/NoteForm';
-import { fetchNotes } from '@/lib/api';
+import css from './Notes.client.module.css';
 
 interface NotesClientProps {
-  tag?: string;
+  tag: string;
 }
 
-export default function NotesClient({ tag }: NotesClientProps) {
-  const [searchText, setSearchText] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTextDebounce] = useDebounce(searchText, 500);
-  const { isModalOpen, openModal, closeModal } = useModalControl();
+const PER_PAGE = 6;
 
-  console.log(tag);
+export default function NotesClient({ tag }: NotesClientProps) {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 500);
+
+  // Скидання сторінки на 1 при зміні пошукового запиту
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['notes', searchTextDebounce, currentPage, tag],
-    queryFn: () => fetchNotes(searchTextDebounce, currentPage, tag),
-    placeholderData: keepPreviousData,
+    queryKey: ['notes', tag, page, debouncedSearch],
+    queryFn: () =>
+      fetchNotesByTag(tag, page, PER_PAGE, debouncedSearch),
+    placeholderData: {
+      notes: [],
+      totalPages: 1,
+    },
   });
 
-  useEffect(() => {
-    if (data?.notes && data.notes.length < 1) {
-      toast.error('No notes found for your request.');
-    }
-  }, [data]);
-
-  const handleSearch = (value: string) => {
-    setSearchText(value);
-    setCurrentPage(1);
-  };
-
-  const handleCreateTaskButton = () => {
-    setCurrentPage(1);
-    openModal();
-  };
+  if (isLoading) return <p>Loading...</p>;
+  if (isError || !data) return <p>Failed to load notes</p>;
 
   return (
-    <div className={css.app}>
-      <header className={css.toolbar}>
-        <SearchBox search={searchText} onChange={handleSearch} />
-        {data && data.totalPages > 1 && (
-          <Pagination
-            totalPages={data.totalPages}
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
-          />
-        )}
-        <button className={css.button} onClick={handleCreateTaskButton}>
+    <div className={css.container}>
+      <div className={css.header}>
+        <SearchBox value={search} onChange={setSearch} />
+        <Link href="/notes/action/create" className={css.createBtn}>
           Create note +
-        </button>
-      </header>
-      <Toaster />
-      {isError && <ErrorMessage />}
-      {isLoading && <Loader />}
-      {data && <NoteList notes={data.notes} />}
-      {isModalOpen && (
-        <Modal onClose={closeModal}>
-          <NoteForm closeModal={closeModal} resetSearchBox={handleSearch} />
-        </Modal>
+        </Link>
+      </div>
+      {data.notes.length > 0 ? (
+        <>
+          <NoteList notes={data.notes} />
+          {data.totalPages > 1 && (
+            <Pagination
+              page={page}
+              totalPages={data.totalPages}
+              onChange={setPage}
+            />
+          )}
+        </>
+      ) : (
+        <p>No notes found</p>
       )}
     </div>
   );

@@ -3,7 +3,7 @@ import css from './page.module.css';
 
 const TAGS = ['Work', 'Personal', 'Meeting', 'Shopping', 'Todo'] as const;
 
-export default function SidebarDefault() {
+export default function SidebarNotes() {
   return (
     <nav>
       <ul className={css.menuList}>
